@@ -1,0 +1,5 @@
+npm run dev
+npm run backend
+npm run live:dev
+npm run messages:dev
+npm run interviewer:dev

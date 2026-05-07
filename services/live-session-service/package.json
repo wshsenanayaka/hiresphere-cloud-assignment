@@ -1,0 +1,19 @@
+{
+  "name": "live-session-service",
+  "version": "1.0.0",
+  "description": "Socket.IO signaling service for HireSphere live mock interviews",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon.cmd server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

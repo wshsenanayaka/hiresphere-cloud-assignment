@@ -1,0 +1,32 @@
+{
+  "scripts": {
+    "dev": "vite frontend --host 127.0.0.1",
+    "frontend": "vite frontend --host 127.0.0.1",
+    "server": "node backend/index.js",
+    "backend": "node backend/index.js",
+    "backend:dev": "nodemon.cmd backend/index.js",
+    "live:dev": "npm.cmd --prefix services/live-session-service run dev",
+    "live:start": "npm.cmd --prefix services/live-session-service start",
+    "messages:dev": "npm.cmd --prefix services/messaging-service run dev",
+    "messages:start": "npm.cmd --prefix services/messaging-service start",
+    "booking:dev": "npm.cmd --prefix services/booking-service run dev",
+    "booking:start": "npm.cmd --prefix services/booking-service start",
+    "interviewer:dev": "npm.cmd --prefix services/interviewer-service run dev",
+    "interviewer:start": "npm.cmd --prefix services/interviewer-service start",
+    "build": "vite build frontend",
+    "preview": "vite preview frontend --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "lucide-react": "latest",
+    "multer": "^2.1.1",
+    "mysql2": "^3.22.3",
+    "react": "latest",
+    "react-dom": "latest",
+    "socket.io-client": "^4.8.3",
+    "vite": "latest"
+  }
+}

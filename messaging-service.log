@@ -1,0 +1,8 @@
+
+> messages:dev
+> npm.cmd --prefix services/messaging-service run dev
+
+
+> messaging-service@1.0.0 dev
+> nodemon server.js
+

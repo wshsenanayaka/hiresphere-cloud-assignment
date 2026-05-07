@@ -1,0 +1,832 @@
+openapi: 3.0.3
+info:
+  title: HireSphere API
+  version: 1.0.0
+  description: API documentation for the HireSphere interview booking platform.
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+tags:
+  - name: Health
+  - name: Auth
+  - name: Profiles
+  - name: Interviewers
+  - name: Bookings
+  - name: Submissions
+  - name: Evaluations
+  - name: Messages
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Check API health
+      responses:
+        "200":
+          description: API is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: hiresphere-api
+
+  /auth:
+    post:
+      tags: [Auth]
+      summary: Login or sign up a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+      responses:
+        "200":
+          description: Authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /profiles:
+    post:
+      tags: [Profiles]
+      summary: Create or update a profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileRequest"
+      responses:
+        "201":
+          description: Profile saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  userId:
+                    type: integer
+                    example: 1
+                  fullName:
+                    type: string
+                    example: Demo Candidate
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /profiles/{userId}:
+    get:
+      tags: [Profiles]
+      summary: Get a profile by user ID
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: Profile details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /interviewers:
+    get:
+      tags: [Interviewers]
+      summary: List interviewers with available slots
+      responses:
+        "200":
+          description: Interviewer list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Interviewer"
+
+  /interviewers/search:
+    get:
+      tags: [Interviewers]
+      summary: Search interviewers
+      parameters:
+        - name: domain
+          in: query
+          schema:
+            type: string
+            example: Backend
+        - name: type
+          in: query
+          schema:
+            type: string
+            example: System Design
+      responses:
+        "200":
+          description: Matching interviewers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Interviewer"
+
+  /interviewers/availability:
+    post:
+      tags: [Interviewers]
+      summary: Create an interviewer availability slot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvailabilityRequest"
+      responses:
+        "201":
+          description: Availability slot created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilitySlot"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /bookings:
+    post:
+      tags: [Bookings]
+      summary: Create a booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingRequest"
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingCreated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /bookings/candidate/{candidateId}:
+    get:
+      tags: [Bookings]
+      summary: List bookings for a candidate
+      parameters:
+        - $ref: "#/components/parameters/CandidateId"
+      responses:
+        "200":
+          description: Candidate bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+
+  /bookings/interviewer/{interviewerId}:
+    get:
+      tags: [Bookings]
+      summary: List bookings for an interviewer
+      parameters:
+        - $ref: "#/components/parameters/InterviewerId"
+      responses:
+        "200":
+          description: Interviewer bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+
+  /bookings/{bookingId}/status:
+    put:
+      tags: [Bookings]
+      summary: Update booking status
+      parameters:
+        - $ref: "#/components/parameters/BookingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  example: submitted
+      responses:
+        "200":
+          description: Booking status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  status:
+                    type: string
+                    example: submitted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /submissions/upload:
+    post:
+      tags: [Submissions]
+      summary: Upload a candidate submission
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [candidateId, bookingId, submission]
+              properties:
+                candidateId:
+                  type: integer
+                  example: 1
+                bookingId:
+                  type: integer
+                  example: 1
+                notes:
+                  type: string
+                  example: Challenge solution attached.
+                submission:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Submission uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionCreated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /submissions/{candidateId}:
+    get:
+      tags: [Submissions]
+      summary: List candidate submissions
+      parameters:
+        - $ref: "#/components/parameters/CandidateId"
+      responses:
+        "200":
+          description: Candidate submissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+
+  /evaluations:
+    post:
+      tags: [Evaluations]
+      summary: Create an evaluation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvaluationRequest"
+      responses:
+        "201":
+          description: Evaluation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationCreated"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /evaluations/candidate/{candidateId}:
+    get:
+      tags: [Evaluations]
+      summary: List candidate evaluations
+      parameters:
+        - $ref: "#/components/parameters/CandidateId"
+      responses:
+        "200":
+          description: Candidate evaluations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Evaluation"
+
+  /messages:
+    post:
+      tags: [Messages]
+      summary: Create a booking message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageRequest"
+      responses:
+        "201":
+          description: Message created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /messages/{bookingId}:
+    get:
+      tags: [Messages]
+      summary: List messages for a booking
+      parameters:
+        - $ref: "#/components/parameters/BookingId"
+      responses:
+        "200":
+          description: Booking messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+
+components:
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+    CandidateId:
+      name: candidateId
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+    InterviewerId:
+      name: interviewerId
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+    BookingId:
+      name: bookingId
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 1
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Invalid request
+
+    AuthRequest:
+      type: object
+      required: [email, password, role]
+      properties:
+        mode:
+          type: string
+          enum: [login, signup]
+          example: signup
+        name:
+          type: string
+          example: Demo Candidate
+        email:
+          type: string
+          format: email
+          example: candidate@example.com
+        password:
+          type: string
+          format: password
+          example: password123
+        role:
+          type: string
+          enum: [candidate, interviewer, admin]
+          example: candidate
+
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Demo Candidate
+        email:
+          type: string
+          example: candidate@example.com
+        profileType:
+          type: string
+          example: candidate
+        interviewerId:
+          nullable: true
+          type: integer
+          example: 1
+
+    ProfileRequest:
+      type: object
+      required: [userId, fullName]
+      properties:
+        userId:
+          type: integer
+          example: 1
+        fullName:
+          type: string
+          example: Demo Candidate
+        phone:
+          type: string
+          example: "0771234567"
+        domain:
+          type: string
+          example: Backend
+        experienceYears:
+          type: integer
+          example: 2
+        bio:
+          type: string
+          example: Node.js candidate
+        resumeUrl:
+          type: string
+          example: https://example.com/resume.pdf
+
+    Profile:
+      allOf:
+        - $ref: "#/components/schemas/ProfileRequest"
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    Interviewer:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 2
+        name:
+          type: string
+          example: Demo Interviewer
+        domain:
+          type: string
+          example: Backend
+        interview_type:
+          type: string
+          example: System Design
+        skills:
+          type: string
+          example: Node.js, MySQL, REST APIs
+        rating:
+          type: number
+          format: float
+          example: 4.5
+        slots:
+          type: array
+          items:
+            $ref: "#/components/schemas/AvailabilitySlot"
+
+    AvailabilityRequest:
+      type: object
+      required: [interviewerId, startTime, endTime]
+      properties:
+        interviewerId:
+          type: integer
+          example: 1
+        startTime:
+          type: string
+          example: "2026-05-06 10:00"
+        endTime:
+          type: string
+          example: "2026-05-06 11:00"
+        status:
+          type: string
+          example: available
+
+    AvailabilitySlot:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        interviewerId:
+          type: integer
+          example: 1
+        interviewer_id:
+          type: integer
+          example: 1
+        startTime:
+          type: string
+          example: "2026-05-06 10:00"
+        endTime:
+          type: string
+          example: "2026-05-06 11:00"
+        status:
+          type: string
+          example: available
+
+    BookingRequest:
+      type: object
+      required: [candidateId, interviewerId, bookingDate]
+      properties:
+        candidateId:
+          type: integer
+          example: 1
+        interviewerId:
+          type: integer
+          example: 1
+        availabilitySlotId:
+          nullable: true
+          type: integer
+          example: 1
+        bookingDate:
+          type: string
+          example: "2026-05-06 10:00"
+        meetingLink:
+          type: string
+          example: https://meet.example.com/session
+
+    BookingCreated:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        candidateId:
+          type: integer
+          example: 1
+        interviewerId:
+          type: integer
+          example: 1
+        bookingDate:
+          type: string
+          example: "2026-05-06 10:00"
+        status:
+          type: string
+          example: booked
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        candidate_id:
+          type: integer
+          example: 1
+        interviewer_id:
+          type: integer
+          example: 1
+        candidate_name:
+          type: string
+          example: Demo Candidate
+        interviewer_name:
+          type: string
+          example: Demo Interviewer
+        domain:
+          type: string
+          example: Backend
+        interview_type:
+          type: string
+          example: System Design
+        booking_date:
+          type: string
+          format: date-time
+        status:
+          type: string
+          example: booked
+        meeting_link:
+          type: string
+          example: https://meet.example.com/session
+        submission_file_name:
+          nullable: true
+          type: string
+          example: solution.zip
+        evaluation_feedback:
+          nullable: true
+          type: string
+          example: Strong technical explanation.
+        evaluation_score:
+          nullable: true
+          type: integer
+          example: 86
+
+    SubmissionCreated:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        candidateId:
+          type: integer
+          example: 1
+        bookingId:
+          type: integer
+          example: 1
+        fileName:
+          type: string
+          example: solution.zip
+        filePath:
+          type: string
+          example: /uploads/1715000000000-solution.zip
+
+    Submission:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        candidate_id:
+          type: integer
+          example: 1
+        booking_id:
+          type: integer
+          example: 1
+        file_name:
+          type: string
+          example: solution.zip
+        file_path:
+          type: string
+          example: /uploads/1715000000000-solution.zip
+        notes:
+          nullable: true
+          type: string
+        booking_date:
+          type: string
+          format: date-time
+        booking_status:
+          type: string
+          example: submitted
+
+    EvaluationRequest:
+      type: object
+      required: [candidateId, bookingId, interviewerId, score, feedback]
+      properties:
+        candidateId:
+          type: integer
+          example: 1
+        bookingId:
+          type: integer
+          example: 1
+        interviewerId:
+          type: integer
+          example: 1
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 86
+        feedback:
+          type: string
+          example: Strong API design and deployment explanation.
+        recommendation:
+          type: string
+          example: shortlist
+
+    EvaluationCreated:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        candidateId:
+          type: integer
+          example: 1
+        bookingId:
+          type: integer
+          example: 1
+        score:
+          type: integer
+          example: 86
+        recommendation:
+          type: string
+          example: shortlist
+
+    Evaluation:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        candidate_id:
+          type: integer
+          example: 1
+        booking_id:
+          type: integer
+          example: 1
+        interviewer_id:
+          type: integer
+          example: 1
+        score:
+          type: integer
+          example: 86
+        feedback:
+          type: string
+          example: Strong API design and deployment explanation.
+        recommendation:
+          type: string
+          example: shortlist
+        interviewer_name:
+          type: string
+          example: Demo Interviewer
+        booking_date:
+          type: string
+          format: date-time
+
+    MessageRequest:
+      type: object
+      required: [bookingId, senderId, receiverId, message]
+      properties:
+        bookingId:
+          type: integer
+          example: 1
+        senderId:
+          type: integer
+          example: 1
+        receiverId:
+          type: integer
+          example: 2
+        message:
+          type: string
+          example: I uploaded the submission.
+
+    Message:
+      allOf:
+        - $ref: "#/components/schemas/MessageRequest"
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            sender_name:
+              type: string
+              example: Demo Candidate
+            receiver_name:
+              type: string
+              example: Demo Interviewer
+            created_at:
+              type: string
+              format: date-time

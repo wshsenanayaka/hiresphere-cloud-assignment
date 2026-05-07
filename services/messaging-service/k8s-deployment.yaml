@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: messaging-service
+  labels:
+    app: messaging-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: messaging-service
+  template:
+    metadata:
+      labels:
+        app: messaging-service
+    spec:
+      containers:
+        - name: messaging-service
+          image: hiresphere/messaging-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 7100
+          env:
+            - name: PORT
+              value: "7100"
+            - name: CLIENT_ORIGIN
+              value: "http://127.0.0.1:5173"
+            - name: DB_HOST
+              value: "mysql-service"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: root-password
+            - name: DB_NAME
+              value: "hirespheredb"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: messaging-service
+spec:
+  type: NodePort
+  selector:
+    app: messaging-service
+  ports:
+    - name: http
+      port: 7100
+      targetPort: 7100
+      nodePort: 30710
