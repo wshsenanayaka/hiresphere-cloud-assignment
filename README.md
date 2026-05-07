@@ -1,6 +1,6 @@
 # HireSphere Cloud Interview Platform
 
-HireSphere is a cloud-based interview management platform. Candidates can book interview sessions, upload submissions, chat with interviewers, and join live interviews. Interviewers can manage availability, set pricing per session, approve or reject booking requests, and publish evaluations.
+HireSphere is a cloud-based interview management platform for mock interview workflows. Candidates can search interviewers, book sessions, upload submissions, chat, join live interviews, buy bundled packages, and view feedback. Interviewers can manage availability, set pricing, approve bookings, annotate submissions, create packages, and publish structured evaluation reports.
 
 ## Tech Stack
 
@@ -8,12 +8,12 @@ HireSphere is a cloud-based interview management platform. Candidates can book i
 - Backend: Node.js Express
 - Database: MySQL
 - Realtime messaging: Socket.IO
-- Live session service: Node.js
-- Microservices: Booking, messaging, live session, interviewer pricing
+- File storage: Local uploads for assignment testing
+- Optional services: booking, messaging, live session, interviewer pricing, submission review, package, evaluation
 
 ## Run Locally
 
-Start the services you normally use:
+Use these commands for the normal local setup:
 
 ```bash
 npm run dev
@@ -22,92 +22,122 @@ npm run live:dev
 npm run messages:dev
 ```
 
-Open the app:
+Open:
 
 ```txt
 http://127.0.0.1:5173
 ```
 
-The pricing feature works through the main backend at:
+Most new assignment features also work through the main backend at:
 
 ```txt
-http://localhost:5000/pricing
+http://localhost:5000
 ```
 
-The separate interviewer service is optional. If you want to run it:
+So the optional microservices are not required for local testing unless you specifically want to run them separately.
+
+## Optional Microservices
+
+Install and run any optional service:
 
 ```bash
-cd services/interviewer-service
+cd services/<service-name>
 npm install
 cd ../..
-npm run interviewer:dev
+npm run <script-name>
 ```
 
-## System Flow
+Available scripts:
 
-1. Start the frontend and backend services.
-2. Open the React app in the browser.
-3. Select a user type:
-   - Candidate
-   - Interviewer
+```bash
+npm run booking:dev
+npm run interviewer:dev
+npm run submissions:dev
+npm run packages:dev
+npm run evaluations:dev
+```
+
+## User Flow
+
+1. Start the app and backend services.
+2. Open the frontend URL.
+3. Select `Candidate` or `Interviewer`.
 4. Login or sign up.
-5. Use the dashboard based on the selected role.
+5. Use the dashboard for the selected role.
 
-## Candidate Flow
+## Candidate Features
 
-Candidate users can:
+Candidates can:
 
 - Search interviewers
 - Book interviews
 - Upload submissions
 - View booking history
+- View submission feedback
+- View structured evaluation reports
+- Browse and buy interview packages
+- Track purchased package sessions
 - Message interviewers
 - Join live interviews
 
-Booking flow:
+Candidate booking flow:
 
 ```txt
 Login
-→ Candidate Dashboard
-→ Select Interviewer
-→ Select Time Slot
-→ Enter Challenge Title
-→ Select Calendar
-→ Select Payment Method
-→ Click Pay and Book
-→ Booking created as PENDING
-→ Wait for interviewer approval
+-> Candidate Dashboard
+-> Select Interviewer
+-> Select Time Slot
+-> Enter Challenge Title
+-> Select Calendar
+-> Select Payment Method
+-> Pay and Book
+-> Booking created as PENDING
+-> Wait for interviewer approval
 ```
 
-Submission flow:
+Candidate package flow:
 
 ```txt
 Candidate Dashboard
-→ Upload Submission
-→ Select Interview
-→ Choose File
-→ Click Upload
-→ Submission saved
+-> Packages
+-> Filter by domain or interview type
+-> Select package
+-> Book package
+-> My packages
+-> Track used and remaining sessions
 ```
 
-Candidate dashboard metric tabs:
+Candidate feedback flow:
 
 ```txt
-Interviewers → Scrolls to interviewer list
-Booked → Shows all booking history
-Submitted → Shows submitted interviews
-Evaluated → Shows evaluated interviews
+Candidate Dashboard
+-> Feedback
+-> View reviewed submissions
+-> Read annotations and review status
 ```
 
-## Interviewer Flow
+Candidate report flow:
 
-Interviewer users can:
+```txt
+Candidate Dashboard
+-> Reports
+-> View score categories
+-> Read strengths, improvement areas, comments, and recommendation
+```
+
+## Interviewer Features
+
+Interviewers can:
 
 - Add availability slots
 - Set pricing per session
+- Create bundled interview packages
 - View booking requests
 - Accept or reject bookings
-- Upload evaluations
+- Review candidate submissions
+- Add submission annotations
+- Create structured evaluation reports
+- Upload simple evaluations
 - Message candidates
 - Join live interviews
 
@@ -115,31 +145,62 @@ Availability flow:
 
 ```txt
 Login
-→ Interviewer Dashboard
-→ Availability Management
-→ Select Date
-→ Select Time
-→ Click Add Slot
-→ Slot available for candidates
+-> Interviewer Dashboard
+-> Availability Management
+-> Select Date
+-> Select Time
+-> Add Slot
 ```
 
 Pricing flow:
 
 ```txt
 Interviewer Dashboard
-→ Click Set Pricing
-→ Add Pricing
-→ Select Interview Type
-→ Select Domain
-→ Enter Duration Minutes
-→ Enter Price
-→ Select Currency
-→ Active pricing checked
-→ Click Create Pricing
-→ Pricing saved
+-> Set Pricing
+-> Select interview type
+-> Select domain
+-> Enter duration
+-> Enter price
+-> Save pricing
 ```
 
-Supported interview types:
+Package flow:
+
+```txt
+Interviewer Dashboard
+-> Packages
+-> Create package
+-> Enter package details
+-> Save package
+-> Candidates can book active packages
+```
+
+Submission annotation flow:
+
+```txt
+Interviewer Dashboard
+-> Review submissions
+-> Select candidate submission
+-> View file or GitHub link
+-> Add line/comment/severity annotation
+-> Update review status
+```
+
+Structured evaluation flow:
+
+```txt
+Interviewer Dashboard
+-> Evaluation reports
+-> Select booking
+-> Add category scores
+-> Add strengths and improvement areas
+-> Select recommendation
+-> Create report
+```
+
+## Supported Values
+
+Interview types:
 
 ```txt
 DSA
@@ -147,7 +208,7 @@ System Design
 Behavioral
 ```
 
-Supported domains:
+Domains:
 
 ```txt
 Backend
@@ -157,63 +218,53 @@ AI/ML
 Mobile
 ```
 
-Booking approval flow:
+Submission status:
 
 ```txt
-Interviewer Dashboard
-→ Click Booking Requests
-→ View Pending Requests
-→ Accept or Reject
-→ Candidate can see status in history
+SUBMITTED
+UNDER_REVIEW
+REVIEWED
+NEEDS_CHANGES
 ```
 
-Evaluation flow:
+Annotation severity:
 
 ```txt
-Interviewer Dashboard
-→ Evaluation Upload
-→ Select Candidate Interview
-→ Enter Score
-→ Enter Feedback
-→ Click Publish Evaluation
-→ Candidate sees evaluation
+INFO
+SUGGESTION
+WARNING
+CRITICAL
 ```
 
-## Messaging Flow
+Package payment status:
 
 ```txt
-Candidate or Interviewer Dashboard
-→ Click Message
-→ Chat window opens
-→ Send message
-→ Other user receives message
+PENDING
+PAID
+FAILED
+REFUNDED
 ```
 
-Required service:
-
-```bash
-npm run messages:dev
-```
-
-## Live Interview Flow
+Package booking status:
 
 ```txt
-Candidate or Interviewer Dashboard
-→ Click Join
-→ Live interview room opens
-→ Camera and microphone start
-→ Interview session begins
+ACTIVE
+COMPLETED
+CANCELLED
 ```
 
-Required service:
+Evaluation recommendations:
 
-```bash
-npm run live:dev
+```txt
+Strong Hire
+Hire
+Needs Improvement
+Not Ready
 ```
 
-## Pricing API
+## API Summary
 
-Pricing endpoints:
+Pricing:
 
 ```txt
 POST   /pricing
@@ -223,40 +274,7 @@ PUT    /pricing/:pricingId
 DELETE /pricing/:pricingId
 ```
 
-Pricing validation:
-
-- `interviewer_id` is required.
-- `interview_type` is required.
-- `domain` is required.
-- `duration_minutes` must be greater than 0.
-- `price` must be greater than 0.
-- Default currency is `USD`.
-- Only the related interviewer can update or delete pricing.
-- Duplicate active pricing is prevented for the same interviewer, interview type, domain, and duration.
-
-## Submission Annotation Feature
-
-Interviewers can review candidate coding submissions, add line-based annotations, comment on selected text, set severity, and update review status. Candidates can view reviewed submissions and reviewer annotations.
-
-Submission status values:
-
-```txt
-SUBMITTED
-UNDER_REVIEW
-REVIEWED
-NEEDS_CHANGES
-```
-
-Annotation severity values:
-
-```txt
-INFO
-SUGGESTION
-WARNING
-CRITICAL
-```
-
-Submission review endpoints:
+Submissions and annotations:
 
 ```txt
 GET    /submissions/interviewer/:interviewerId
@@ -269,53 +287,7 @@ PUT    /annotations/:annotationId
 DELETE /annotations/:annotationId
 ```
 
-Run the optional submission microservice:
-
-```bash
-cd services/submission-service
-npm install
-cd ../..
-npm run submissions:dev
-```
-
-The app also includes a fallback through the main backend, so this feature works with:
-
-```bash
-npm run backend
-```
-
-Build the submission service Docker image:
-
-```bash
-docker build -t hiresphere-submission-service:latest services/submission-service
-```
-
-Apply Kubernetes deployment:
-
-```bash
-kubectl apply -f services/submission-service/k8s-deployment.yaml
-```
-
-Sample submission SQL:
-
-```sql
-INSERT INTO submissions
-(booking_id, candidate_id, interviewer_id, title, github_link, file_url, submission_type, status)
-VALUES
-(1, 1, 1, 'REST API Challenge', 'https://github.com/example/hire-api', '/uploads/sample-submission.js', 'GITHUB', 'SUBMITTED');
-```
-
-Submission annotation report summary:
-
-```txt
-The Annotate Candidate Submissions feature allows interviewers to review uploaded candidate work and provide structured feedback. Interviewers can view assigned submissions, inspect local file content or GitHub links, add annotations with severity levels, and update review status. Candidates can view reviewed submissions and annotations from their feedback page. The feature uses Express APIs, MySQL tables for submissions and annotations, prepared statements for database safety, and local file storage for assignment testing.
-```
-
-## Bundled Interview Packages Feature
-
-Interviewers can create bundled interview packages, and candidates can browse, book, and track package session usage.
-
-Package endpoints:
+Packages:
 
 ```txt
 POST   /packages
@@ -329,72 +301,7 @@ GET    /packages/candidate/:candidateId/bookings
 PUT    /packages/bookings/:bookingId/use-session
 ```
 
-Payment status values:
-
-```txt
-PENDING
-PAID
-FAILED
-REFUNDED
-```
-
-Booking status values:
-
-```txt
-ACTIVE
-COMPLETED
-CANCELLED
-```
-
-Run the optional package microservice:
-
-```bash
-cd services/package-service
-npm install
-cd ../..
-npm run packages:dev
-```
-
-The app also includes a fallback through the main backend, so this feature works with:
-
-```bash
-npm run backend
-```
-
-Build the package service Docker image:
-
-```bash
-docker build -t hiresphere-package-service:latest services/package-service
-```
-
-Apply Kubernetes deployment:
-
-```bash
-kubectl apply -f services/package-service/k8s-deployment.yaml
-```
-
-Sample package SQL:
-
-```sql
-INSERT INTO interview_packages
-(interviewer_id, package_name, description, domain, interview_type, session_count,
- duration_minutes_per_session, total_price, currency, discount_percentage, is_active)
-VALUES
-(1, 'Backend Interview Sprint', 'Three backend interview sessions with code and system design practice.',
- 'Backend', 'System Design', 3, 60, 120.00, 'USD', 10.00, 1);
-```
-
-Package feature report summary:
-
-```txt
-The Bundled Interview Packages feature allows interviewers to sell multi-session interview preparation packages. Interviewers can create, update, view, and deactivate packages with session count, duration, price, discount, domain, and interview type. Candidates can browse active packages, filter by domain and interview type, book packages, and track used and remaining sessions. The backend uses Express and MySQL with prepared statements, ownership checks, session usage tracking, and automatic completion when remaining sessions reach zero.
-```
-
-## Structured Evaluation Reports Feature
-
-Interviewers can create structured reports after mock interviews, and candidates can view their reports.
-
-Evaluation endpoints:
+Structured evaluations:
 
 ```txt
 POST /evaluations
@@ -404,90 +311,9 @@ GET  /evaluations/booking/:bookingId
 PUT  /evaluations/:evaluationId
 ```
 
-Recommendation values:
-
-```txt
-Strong Hire
-Hire
-Needs Improvement
-Not Ready
-```
-
-Run the optional evaluation microservice:
-
-```bash
-cd services/evaluation-service
-npm install
-cd ../..
-npm run evaluations:dev
-```
-
-The app also includes a fallback through the main backend, so this feature works with:
-
-```bash
-npm run backend
-```
-
-Build the evaluation service Docker image:
-
-```bash
-docker build -t hiresphere-evaluation-service:latest services/evaluation-service
-```
-
-Apply Kubernetes deployment:
-
-```bash
-kubectl apply -f services/evaluation-service/k8s-deployment.yaml
-```
-
-Sample evaluation report SQL:
-
-```sql
-INSERT INTO evaluation_reports
-(booking_id, candidate_id, interviewer_id, technical_score, communication_score,
- problem_solving_score, coding_score, system_design_score, behavioral_score,
- overall_score, strengths, improvement_areas, interviewer_comments, recommendation)
-VALUES
-(1, 1, 1, 4, 4, 5, 4, 3, 4, 4.00,
- 'Strong API fundamentals.',
- 'Improve scalability trade-off explanations.',
- 'Candidate communicated confidently.',
- 'Hire');
-```
-
-Evaluation report feature summary:
-
-```txt
-The Structured Evaluation Reports feature allows interviewers to create detailed post-interview feedback using six score categories: technical, communication, problem solving, coding, system design, and behavioral. The backend calculates the overall score automatically and enforces one report per booking. Candidates can view their recommendation, category scores, strengths, improvement areas, and interviewer comments. The feature uses Express APIs, MySQL prepared statements, ownership validation, and a React report card interface.
-```
-
-## Success and Error Messages
-
-The system uses SweetAlert messages.
-
-Success examples:
-
-```txt
-Booking successful
-Submission uploaded
-Slot added
-Pricing created
-Booking accepted
-Evaluation published
-```
-
-Error examples:
-
-```txt
-Create failed
-Upload failed
-Booking failed
-Failed to fetch
-```
-
 ## Useful Commands
 
-Install root dependencies:
+Install dependencies:
 
 ```bash
 npm install
@@ -505,7 +331,7 @@ Run main backend:
 npm run backend
 ```
 
-Run live session service:
+Run live service:
 
 ```bash
 npm run live:dev
@@ -517,12 +343,6 @@ Run messaging service:
 npm run messages:dev
 ```
 
-Run interviewer pricing service, optional:
-
-```bash
-npm run interviewer:dev
-```
-
 Build frontend:
 
 ```bash
@@ -531,33 +351,29 @@ npm run build
 
 ## Docker Commands
 
-Build interviewer service image:
+Build optional service images:
 
 ```bash
 docker build -t hiresphere-interviewer-service:latest services/interviewer-service
-```
-
-Run interviewer service container:
-
-```bash
-docker run -p 7300:7300 --env-file services/interviewer-service/.env hiresphere-interviewer-service:latest
+docker build -t hiresphere-submission-service:latest services/submission-service
+docker build -t hiresphere-package-service:latest services/package-service
+docker build -t hiresphere-evaluation-service:latest services/evaluation-service
 ```
 
 ## Kubernetes
 
-Interviewer service deployment file:
-
-```txt
-services/interviewer-service/k8s-deployment.yaml
-```
-
-Apply deployment:
+Apply optional service deployments:
 
 ```bash
 kubectl apply -f services/interviewer-service/k8s-deployment.yaml
+kubectl apply -f services/submission-service/k8s-deployment.yaml
+kubectl apply -f services/package-service/k8s-deployment.yaml
+kubectl apply -f services/evaluation-service/k8s-deployment.yaml
 ```
 
-## Sample Pricing SQL
+## Sample SQL
+
+Pricing:
 
 ```sql
 INSERT INTO interviewer_pricing
@@ -566,6 +382,41 @@ VALUES
 (1, 'DSA', 'Backend', 60, 45.00, 'USD', 1);
 ```
 
+Package:
+
+```sql
+INSERT INTO interview_packages
+(interviewer_id, package_name, description, domain, interview_type, session_count,
+ duration_minutes_per_session, total_price, currency, discount_percentage, is_active)
+VALUES
+(1, 'Backend Interview Sprint', 'Three backend interview sessions.',
+ 'Backend', 'System Design', 3, 60, 120.00, 'USD', 10.00, 1);
+```
+
+Submission annotation:
+
+```sql
+INSERT INTO submission_annotations
+(submission_id, interviewer_id, line_number, selected_text, comment, severity)
+VALUES
+(1, 1, 12, 'pool.execute(...)', 'Good use of prepared statements.', 'INFO');
+```
+
+Structured evaluation report:
+
+```sql
+INSERT INTO evaluation_reports
+(booking_id, candidate_id, interviewer_id, technical_score, communication_score,
+ problem_solving_score, coding_score, system_design_score, behavioral_score,
+ overall_score, strengths, improvement_areas, interviewer_comments, recommendation)
+VALUES
+(1, 1, 1, 4, 4, 5, 4, 3, 4, 4.00,
+ 'Strong API fundamentals.',
+ 'Improve scalability trade-off explanations.',
+ 'Candidate communicated confidently.',
+ 'Hire');
+```
+
 ## Assignment Report Summary
 
-HireSphere is a cloud-based interview management platform built using React, Node.js Express, and MySQL. The system supports two main user roles: candidates and interviewers. Candidates can search interviewers, book interview sessions, upload submissions, join live interviews, and view evaluation results. Interviewers can manage availability, set session pricing, approve or reject booking requests, communicate with candidates, and publish evaluations. The application also includes messaging and live session services to support realtime communication and interview collaboration.
+HireSphere is a cloud-based interview management platform built with React, Node.js Express, and MySQL. The system supports candidate and interviewer workflows including booking, messaging, live interviews, pricing, bundled packages, submission annotations, and structured evaluation reports. The backend uses prepared SQL statements and assignment-friendly local storage. Optional microservices are provided for cloud deployment, while the main backend also exposes fallback routes for local testing.
