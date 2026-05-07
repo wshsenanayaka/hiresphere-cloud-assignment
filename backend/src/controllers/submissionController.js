@@ -1,4 +1,8 @@
 const pool = require('../config/db');
+const {
+  ensureReviewTables,
+  listCandidateSubmissions: listCandidateReviewedSubmissions,
+} = require('./submissionReviewController');
 
 async function uploadSubmission(req, res, next) {
   try {
@@ -8,10 +12,25 @@ async function uploadSubmission(req, res, next) {
       return res.status(400).json({ error: 'candidateId, bookingId, and submission file are required' });
     }
 
+    await ensureReviewTables();
+
+    const [bookings] = await pool.execute('SELECT interviewer_id FROM bookings WHERE id = ?', [bookingId]);
+    const interviewerId = bookings[0]?.interviewer_id || null;
+
     const [result] = await pool.execute(
-      `INSERT INTO submissions (candidate_id, booking_id, file_name, file_path, notes)
-       VALUES (?, ?, ?, ?, ?)`,
-      [candidateId, bookingId, req.file.originalname, `/uploads/${req.file.filename}`, notes || null],
+      `INSERT INTO submissions
+       (candidate_id, booking_id, interviewer_id, title, file_url, submission_type, status, file_name, file_path, notes)
+       VALUES (?, ?, ?, ?, ?, 'FILE', 'SUBMITTED', ?, ?, ?)`,
+      [
+        candidateId,
+        bookingId,
+        interviewerId,
+        req.file.originalname,
+        `/uploads/${req.file.filename}`,
+        req.file.originalname,
+        `/uploads/${req.file.filename}`,
+        notes || null,
+      ],
     );
 
     await pool.execute('UPDATE bookings SET status = ? WHERE id = ?', ['submitted', bookingId]);
@@ -29,20 +48,7 @@ async function uploadSubmission(req, res, next) {
 }
 
 async function listCandidateSubmissions(req, res, next) {
-  try {
-    const [rows] = await pool.execute(
-      `SELECT s.*, b.booking_date, b.status AS booking_status
-       FROM submissions s
-       JOIN bookings b ON b.id = s.booking_id
-       WHERE s.candidate_id = ?
-       ORDER BY s.created_at DESC`,
-      [req.params.candidateId],
-    );
-
-    res.json(rows);
-  } catch (error) {
-    next(error);
-  }
+  return listCandidateReviewedSubmissions(req, res, next);
 }
 
 module.exports = {

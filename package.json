@@ -13,6 +13,12 @@
     "booking:start": "npm.cmd --prefix services/booking-service start",
     "interviewer:dev": "npm.cmd --prefix services/interviewer-service run dev",
     "interviewer:start": "npm.cmd --prefix services/interviewer-service start",
+    "submissions:dev": "npm.cmd --prefix services/submission-service run dev",
+    "submissions:start": "npm.cmd --prefix services/submission-service start",
+    "packages:dev": "npm.cmd --prefix services/package-service run dev",
+    "packages:start": "npm.cmd --prefix services/package-service start",
+    "evaluations:dev": "npm.cmd --prefix services/evaluation-service run dev",
+    "evaluations:start": "npm.cmd --prefix services/evaluation-service start",
     "build": "vite build frontend",
     "preview": "vite preview frontend --host 127.0.0.1"
   },

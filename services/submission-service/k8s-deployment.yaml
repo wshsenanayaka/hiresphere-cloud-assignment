@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: submission-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: submission-service
+  template:
+    metadata:
+      labels:
+        app: submission-service
+    spec:
+      containers:
+        - name: submission-service
+          image: hiresphere-submission-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 7400
+          env:
+            - name: PORT
+              value: "7400"
+            - name: CLIENT_ORIGIN
+              value: "http://127.0.0.1:5173"
+            - name: DB_HOST
+              value: "mysql"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-root-password
+            - name: DB_NAME
+              value: "hirespheredb"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: submission-service
+spec:
+  selector:
+    app: submission-service
+  ports:
+    - protocol: TCP
+      port: 7400
+      targetPort: 7400
+  type: ClusterIP

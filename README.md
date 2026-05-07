@@ -234,6 +234,233 @@ Pricing validation:
 - Only the related interviewer can update or delete pricing.
 - Duplicate active pricing is prevented for the same interviewer, interview type, domain, and duration.
 
+## Submission Annotation Feature
+
+Interviewers can review candidate coding submissions, add line-based annotations, comment on selected text, set severity, and update review status. Candidates can view reviewed submissions and reviewer annotations.
+
+Submission status values:
+
+```txt
+SUBMITTED
+UNDER_REVIEW
+REVIEWED
+NEEDS_CHANGES
+```
+
+Annotation severity values:
+
+```txt
+INFO
+SUGGESTION
+WARNING
+CRITICAL
+```
+
+Submission review endpoints:
+
+```txt
+GET    /submissions/interviewer/:interviewerId
+GET    /submissions/candidate/:candidateId
+GET    /submissions/:submissionId
+PUT    /submissions/:submissionId/status
+POST   /submissions/:submissionId/annotations
+GET    /submissions/:submissionId/annotations
+PUT    /annotations/:annotationId
+DELETE /annotations/:annotationId
+```
+
+Run the optional submission microservice:
+
+```bash
+cd services/submission-service
+npm install
+cd ../..
+npm run submissions:dev
+```
+
+The app also includes a fallback through the main backend, so this feature works with:
+
+```bash
+npm run backend
+```
+
+Build the submission service Docker image:
+
+```bash
+docker build -t hiresphere-submission-service:latest services/submission-service
+```
+
+Apply Kubernetes deployment:
+
+```bash
+kubectl apply -f services/submission-service/k8s-deployment.yaml
+```
+
+Sample submission SQL:
+
+```sql
+INSERT INTO submissions
+(booking_id, candidate_id, interviewer_id, title, github_link, file_url, submission_type, status)
+VALUES
+(1, 1, 1, 'REST API Challenge', 'https://github.com/example/hire-api', '/uploads/sample-submission.js', 'GITHUB', 'SUBMITTED');
+```
+
+Submission annotation report summary:
+
+```txt
+The Annotate Candidate Submissions feature allows interviewers to review uploaded candidate work and provide structured feedback. Interviewers can view assigned submissions, inspect local file content or GitHub links, add annotations with severity levels, and update review status. Candidates can view reviewed submissions and annotations from their feedback page. The feature uses Express APIs, MySQL tables for submissions and annotations, prepared statements for database safety, and local file storage for assignment testing.
+```
+
+## Bundled Interview Packages Feature
+
+Interviewers can create bundled interview packages, and candidates can browse, book, and track package session usage.
+
+Package endpoints:
+
+```txt
+POST   /packages
+GET    /packages/interviewer/:interviewerId
+GET    /packages/active
+GET    /packages/:packageId
+PUT    /packages/:packageId
+DELETE /packages/:packageId
+POST   /packages/:packageId/book
+GET    /packages/candidate/:candidateId/bookings
+PUT    /packages/bookings/:bookingId/use-session
+```
+
+Payment status values:
+
+```txt
+PENDING
+PAID
+FAILED
+REFUNDED
+```
+
+Booking status values:
+
+```txt
+ACTIVE
+COMPLETED
+CANCELLED
+```
+
+Run the optional package microservice:
+
+```bash
+cd services/package-service
+npm install
+cd ../..
+npm run packages:dev
+```
+
+The app also includes a fallback through the main backend, so this feature works with:
+
+```bash
+npm run backend
+```
+
+Build the package service Docker image:
+
+```bash
+docker build -t hiresphere-package-service:latest services/package-service
+```
+
+Apply Kubernetes deployment:
+
+```bash
+kubectl apply -f services/package-service/k8s-deployment.yaml
+```
+
+Sample package SQL:
+
+```sql
+INSERT INTO interview_packages
+(interviewer_id, package_name, description, domain, interview_type, session_count,
+ duration_minutes_per_session, total_price, currency, discount_percentage, is_active)
+VALUES
+(1, 'Backend Interview Sprint', 'Three backend interview sessions with code and system design practice.',
+ 'Backend', 'System Design', 3, 60, 120.00, 'USD', 10.00, 1);
+```
+
+Package feature report summary:
+
+```txt
+The Bundled Interview Packages feature allows interviewers to sell multi-session interview preparation packages. Interviewers can create, update, view, and deactivate packages with session count, duration, price, discount, domain, and interview type. Candidates can browse active packages, filter by domain and interview type, book packages, and track used and remaining sessions. The backend uses Express and MySQL with prepared statements, ownership checks, session usage tracking, and automatic completion when remaining sessions reach zero.
+```
+
+## Structured Evaluation Reports Feature
+
+Interviewers can create structured reports after mock interviews, and candidates can view their reports.
+
+Evaluation endpoints:
+
+```txt
+POST /evaluations
+GET  /evaluations/candidate/:candidateId
+GET  /evaluations/interviewer/:interviewerId
+GET  /evaluations/booking/:bookingId
+PUT  /evaluations/:evaluationId
+```
+
+Recommendation values:
+
+```txt
+Strong Hire
+Hire
+Needs Improvement
+Not Ready
+```
+
+Run the optional evaluation microservice:
+
+```bash
+cd services/evaluation-service
+npm install
+cd ../..
+npm run evaluations:dev
+```
+
+The app also includes a fallback through the main backend, so this feature works with:
+
+```bash
+npm run backend
+```
+
+Build the evaluation service Docker image:
+
+```bash
+docker build -t hiresphere-evaluation-service:latest services/evaluation-service
+```
+
+Apply Kubernetes deployment:
+
+```bash
+kubectl apply -f services/evaluation-service/k8s-deployment.yaml
+```
+
+Sample evaluation report SQL:
+
+```sql
+INSERT INTO evaluation_reports
+(booking_id, candidate_id, interviewer_id, technical_score, communication_score,
+ problem_solving_score, coding_score, system_design_score, behavioral_score,
+ overall_score, strengths, improvement_areas, interviewer_comments, recommendation)
+VALUES
+(1, 1, 1, 4, 4, 5, 4, 3, 4, 4.00,
+ 'Strong API fundamentals.',
+ 'Improve scalability trade-off explanations.',
+ 'Candidate communicated confidently.',
+ 'Hire');
+```
+
+Evaluation report feature summary:
+
+```txt
+The Structured Evaluation Reports feature allows interviewers to create detailed post-interview feedback using six score categories: technical, communication, problem solving, coding, system design, and behavioral. The backend calculates the overall score automatically and enforces one report per booking. Candidates can view their recommendation, category scores, strengths, improvement areas, and interviewer comments. The feature uses Express APIs, MySQL prepared statements, ownership validation, and a React report card interface.
+```
+
 ## Success and Error Messages
 
 The system uses SweetAlert messages.

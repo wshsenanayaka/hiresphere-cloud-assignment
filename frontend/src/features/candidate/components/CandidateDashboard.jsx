@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, CreditCard, FileCheck2, History, Search, Upload } from 'lucide-react';
+import { ArrowRight, CalendarDays, CreditCard, FileCheck2, Gift, History, MessageSquareText, Search, SlidersHorizontal, Sparkles, Upload } from 'lucide-react';
 import { api, mapInterviewer } from '../../../api';
-import { DashboardHeader, Metric } from '../../../shared/components';
+import { Metric } from '../../../shared/components';
 import FloatingChatWidget from '../../../components/FloatingChatWidget';
 import HistoryPanel from './HistoryPanel';
 import { filterOptions } from '../../../data/mockData';
@@ -162,16 +162,36 @@ function CandidateDashboard({ user, bookings, reloadBookings, onNavigate }) {
   }
 
   return (
-    <section className="workspace">
-      <DashboardHeader
-        title="Candidate Dashboard"
-        subtitle="Search interviewers, book an interview, upload your challenge, and track results."
-        actions={
+    <section className="workspace candidate-dashboard">
+      <header className="candidate-hero">
+        <div className="candidate-hero-copy">
+          <span className="hero-kicker">
+            <Sparkles size={16} /> Candidate workspace
+          </span>
+          <h2>Welcome back, {user.name}</h2>
+          <p>Find the right interviewer, reserve a session, submit your work, and track feedback in one place.</p>
+        </div>
+        <div className="candidate-hero-actions">
+          <button className="secondary-button header-action" type="button" onClick={() => onNavigate('/packages')}>
+            <Gift size={17} /> Packages
+          </button>
+          <button className="secondary-button header-action" type="button" onClick={() => onNavigate('/my-packages')}>
+            <Gift size={17} /> My packages
+          </button>
+          <button className="secondary-button header-action" type="button" onClick={() => onNavigate('/submission-feedback')}>
+            <MessageSquareText size={17} /> Feedback
+          </button>
+          <button className="secondary-button header-action" type="button" onClick={() => onNavigate('/evaluation-reports')}>
+            <FileCheck2 size={17} /> Reports
+          </button>
           <button className="secondary-button header-action" type="button" onClick={() => onNavigate('/booking-history')}>
             <History size={17} /> Booking history
           </button>
-        }
-      />
+          <button className="primary-button header-action" type="button" onClick={showInterviewers}>
+            <Search size={17} /> Find interviewers
+          </button>
+        </div>
+      </header>
 
       <div className="metrics-grid">
         <Metric icon={<Search />} label="Interviewers" value={filteredInterviewers.length} onClick={showInterviewers} />
@@ -181,9 +201,14 @@ function CandidateDashboard({ user, bookings, reloadBookings, onNavigate }) {
       </div>
 
       <div className="content-grid">
-        <section className="panel wide" ref={interviewersSectionRef}>
+        <section className="panel wide candidate-search-panel" ref={interviewersSectionRef}>
           <div className="panel-title">
-            <h2>Search Interviewers</h2>
+            <div>
+              <span className="section-label">
+                <SlidersHorizontal size={15} /> Discovery
+              </span>
+              <h2>Search Interviewers</h2>
+            </div>
             <div className="search-field">
               <Search size={18} />
               <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search skill, role, or name" />
@@ -267,7 +292,7 @@ function CandidateDashboard({ user, bookings, reloadBookings, onNavigate }) {
                     {person.role} - {person.domain} - {person.experienceLevel}
                   </span>
                 </div>
-                <small>{person.rating} rating</small>
+                <small className="rating-chip">{person.rating} rating</small>
                 <div className="interviewer-meta">
                   <span>{person.interviewTypes.join(', ')}</span>
                   <span>{person.slots.length ? `${person.slots.length} open slots` : 'No open slots'}</span>
@@ -283,10 +308,24 @@ function CandidateDashboard({ user, bookings, reloadBookings, onNavigate }) {
           </div>
         </section>
 
-        <section className="panel">
-          <h2>Book Interview</h2>
+        <section className="panel candidate-action-panel">
+          <div className="panel-title compact-title">
+            <div>
+              <span className="section-label">
+                <CalendarDays size={15} /> Checkout
+              </span>
+              <h2>Book Interview</h2>
+            </div>
+          </div>
           {selectedInterviewer ? (
             <form onSubmit={bookInterview} className="stack-form">
+              <div className="selected-interviewer-card">
+                <div>
+                  <strong>{selectedInterviewer.name}</strong>
+                  <span>{selectedInterviewer.domain} mentor</span>
+                </div>
+                <small>{selectedInterviewer.slots.length} slots</small>
+              </div>
               <label>
                 Interviewer
                 <input value={selectedInterviewer.name} readOnly />
@@ -351,7 +390,7 @@ function CandidateDashboard({ user, bookings, reloadBookings, onNavigate }) {
                 <span>Mock payment will be marked as paid for this booking.</span>
               </div>
               <button className="primary-button" disabled={!selectedSlot}>
-                Pay ${selectedInterviewer.price} and book
+                Pay ${selectedInterviewer.price} and book <ArrowRight size={17} />
               </button>
               {formError && <p className="form-error">{formError}</p>}
             </form>
@@ -360,8 +399,15 @@ function CandidateDashboard({ user, bookings, reloadBookings, onNavigate }) {
           )}
         </section>
 
-        <section className="panel">
-          <h2>Upload Submission</h2>
+        <section className="panel candidate-action-panel">
+          <div className="panel-title compact-title">
+            <div>
+              <span className="section-label">
+                <Upload size={15} /> Submission
+              </span>
+              <h2>Upload Submission</h2>
+            </div>
+          </div>
           <form onSubmit={uploadSubmission} className="stack-form">
             <label>
               Interview
@@ -378,7 +424,7 @@ function CandidateDashboard({ user, bookings, reloadBookings, onNavigate }) {
               <input name="submission" type="file" required />
             </label>
             <button className="primary-button">
-              <Upload size={17} /> Upload
+              <Upload size={17} /> Upload submission
             </button>
             {formError && <p className="form-error">{formError}</p>}
           </form>

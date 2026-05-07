@@ -1,7 +1,20 @@
 import { useEffect, useState } from 'react';
-import { CalendarDays, ClipboardList, Clock, DollarSign, FileCheck2, MessageCircle, Upload, Video } from 'lucide-react';
+import {
+  ArrowRight,
+  CalendarDays,
+  ClipboardList,
+  Clock,
+  DollarSign,
+  FileCheck2,
+  Gift,
+  MessageCircle,
+  MessageSquareText,
+  Sparkles,
+  Upload,
+  Video,
+} from 'lucide-react';
 import { api } from '../../../api';
-import { DashboardHeader, Metric } from '../../../shared/components';
+import { Metric } from '../../../shared/components';
 import FloatingChatWidget from '../../../components/FloatingChatWidget';
 import { showError, showSuccess } from '../../../utils/alerts';
 
@@ -94,21 +107,33 @@ function InterviewerDashboard({ user, bookings, reloadBookings, onNavigate }) {
   }
 
   return (
-    <section className="workspace">
-      <DashboardHeader
-        title="Interviewer Dashboard"
-        subtitle="Manage interview availability and upload candidate evaluation results."
-        actions={
-          <>
-            <button className="secondary-button header-action" type="button" onClick={() => onNavigate('/pricing')}>
-              <DollarSign size={17} /> Set pricing
-            </button>
-            <button className="primary-button header-action" type="button" onClick={() => onNavigate('/booking-requests')}>
-              <ClipboardList size={17} /> Booking requests
-            </button>
-          </>
-        }
-      />
+    <section className="workspace interviewer-dashboard">
+      <header className="interviewer-hero">
+        <div className="interviewer-hero-copy">
+          <span className="hero-kicker">
+            <Sparkles size={16} /> Interviewer workspace
+          </span>
+          <h2>Welcome back, {user.name}</h2>
+          <p>Manage availability, price your sessions, review requests, and publish candidate feedback from one focused dashboard.</p>
+        </div>
+        <div className="interviewer-hero-actions">
+          <button className="secondary-button header-action" type="button" onClick={() => onNavigate('/interviewer-packages')}>
+            <Gift size={17} /> Packages
+          </button>
+          <button className="secondary-button header-action" type="button" onClick={() => onNavigate('/pricing')}>
+            <DollarSign size={17} /> Set pricing
+          </button>
+          <button className="secondary-button header-action" type="button" onClick={() => onNavigate('/submission-review')}>
+            <MessageSquareText size={17} /> Review submissions
+          </button>
+          <button className="secondary-button header-action" type="button" onClick={() => onNavigate('/evaluation-form')}>
+            <FileCheck2 size={17} /> Evaluation reports
+          </button>
+          <button className="primary-button header-action" type="button" onClick={() => onNavigate('/booking-requests')}>
+            <ClipboardList size={17} /> Booking requests <ArrowRight size={17} />
+          </button>
+        </div>
+      </header>
 
       <div className="metrics-grid">
         <Metric icon={<Clock />} label="Open slots" value={slots.length} />
@@ -117,9 +142,16 @@ function InterviewerDashboard({ user, bookings, reloadBookings, onNavigate }) {
         <Metric icon={<FileCheck2 />} label="Evaluations" value={interviewerBookings.filter((item) => item.evaluation).length} />
       </div>
 
-      <div className="content-grid">
-        <section className="panel">
-          <h2>Availability Management</h2>
+      <div className="content-grid interviewer-content-grid">
+        <section className="panel interviewer-action-panel availability-panel">
+          <div className="panel-title compact-title">
+            <div>
+              <span className="section-label">
+                <Clock size={15} /> Schedule
+              </span>
+              <h2>Availability Management</h2>
+            </div>
+          </div>
           <form className="stack-form" onSubmit={addSlot}>
             <label>
               Date
@@ -135,14 +167,22 @@ function InterviewerDashboard({ user, bookings, reloadBookings, onNavigate }) {
             {formError && <p className="form-error">{formError}</p>}
           </form>
           <div className="slot-list">
+            {slots.length === 0 && <div className="empty-state">No availability slots added yet.</div>}
             {slots.map((slot) => (
               <span key={slot}>{slot}</span>
             ))}
           </div>
         </section>
 
-        <section className="panel wide">
-          <h2>Evaluation Upload</h2>
+        <section className="panel wide interviewer-action-panel evaluation-panel">
+          <div className="panel-title compact-title">
+            <div>
+              <span className="section-label">
+                <FileCheck2 size={15} /> Feedback
+              </span>
+              <h2>Evaluation Upload</h2>
+            </div>
+          </div>
           <form className="evaluation-form" onSubmit={uploadEvaluation}>
             <label>
               Candidate interview
@@ -163,13 +203,21 @@ function InterviewerDashboard({ user, bookings, reloadBookings, onNavigate }) {
               <textarea name="evaluation" placeholder="Technical feedback, communication notes, next recommendation" required />
             </label>
             <button className="primary-button">
-              <FileCheck2 size={17} /> Publish evaluation
+              <FileCheck2 size={17} /> Publish evaluation <ArrowRight size={17} />
             </button>
           </form>
         </section>
 
-        <section className="panel wide">
-          <h2>Assigned Interviews</h2>
+        <section className="panel wide interviewer-queue-panel">
+          <div className="panel-title compact-title">
+            <div>
+              <span className="section-label">
+                <ClipboardList size={15} /> Work queue
+              </span>
+              <h2>Assigned Interviews</h2>
+            </div>
+            <span className="call-status">{interviewerBookings.length} assigned</span>
+          </div>
           <div className="table assigned-table">
             <div className="table-head">
               <span>Candidate</span>
@@ -179,6 +227,7 @@ function InterviewerDashboard({ user, bookings, reloadBookings, onNavigate }) {
               <span>Chat</span>
               <span>Live</span>
             </div>
+            {interviewerBookings.length === 0 && <div className="empty-state">No assigned interviews yet.</div>}
             {interviewerBookings.map((booking) => (
               <div className="table-row" key={booking.id}>
                 <span>{booking.candidate}</span>
