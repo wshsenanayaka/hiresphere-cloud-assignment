@@ -1,13 +1,12 @@
-FROM node:22-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
 RUN npm install --omit=dev
 
-COPY db.js server.js ./
+COPY . .
 
-ENV PORT=7100
-EXPOSE 7100
+EXPOSE 4006
 
 CMD ["npm", "start"]

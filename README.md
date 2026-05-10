@@ -351,7 +351,28 @@ npm run build
 
 ## Docker Commands
 
-Build optional service images:
+Run the full Docker setup:
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+Stop containers:
+
+```bash
+docker compose down
+```
+
+View logs:
+
+```bash
+docker logs hiresphere-frontend
+docker logs hiresphere-backend
+docker logs hiresphere-booking-service
+```
+
+Build optional service images manually:
 
 ```bash
 docker build -t hiresphere-interviewer-service:latest services/interviewer-service
@@ -359,6 +380,13 @@ docker build -t hiresphere-submission-service:latest services/submission-service
 docker build -t hiresphere-package-service:latest services/package-service
 docker build -t hiresphere-evaluation-service:latest services/evaluation-service
 ```
+
+Common Docker notes:
+
+- `node_modules`, `.env`, `.git`, and `*.log` files are ignored by Docker.
+- If a port is already in use, stop the local process or change the port mapping in `docker-compose.yml`.
+- MySQL uses a healthcheck before services start. If a service still starts too early, rerun it with `docker compose restart <service-name>`.
+- The MySQL database is initialized from `docker/mysql/init.sql` on first volume creation.
 
 ## Kubernetes
 

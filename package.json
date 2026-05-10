@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "start": "vite frontend --host 0.0.0.0 --port 3000",
     "dev": "vite frontend --host 127.0.0.1",
     "frontend": "vite frontend --host 127.0.0.1",
     "server": "node backend/index.js",
