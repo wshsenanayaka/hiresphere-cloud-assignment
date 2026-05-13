@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: package-service
+  namespace: hiresphere
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: package-service
+  template:
+    metadata:
+      labels:
+        app: package-service
+    spec:
+      containers:
+        - name: package-service
+          image: hiresphere-package-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4008
+          env:
+            - name: PORT
+              value: "4008"
+            - name: CLIENT_ORIGIN
+              value: http://frontend-service:3000
+          envFrom:
+            - configMapRef:
+                name: hiresphere-config
+            - secretRef:
+                name: hiresphere-secret
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4008
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4008
+            initialDelaySeconds: 30
+            periodSeconds: 20

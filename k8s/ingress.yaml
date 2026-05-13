@@ -1,0 +1,73 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hiresphere-ingress
+  namespace: hiresphere
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /api/backend
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 5000
+          - path: /api/interviewers
+            pathType: Prefix
+            backend:
+              service:
+                name: interviewer-service
+                port:
+                  number: 4002
+          - path: /api/bookings
+            pathType: Prefix
+            backend:
+              service:
+                name: booking-service
+                port:
+                  number: 4003
+          - path: /api/submissions
+            pathType: Prefix
+            backend:
+              service:
+                name: submission-service
+                port:
+                  number: 4004
+          - path: /api/evaluations
+            pathType: Prefix
+            backend:
+              service:
+                name: evaluation-service
+                port:
+                  number: 4005
+          - path: /api/messages
+            pathType: Prefix
+            backend:
+              service:
+                name: messaging-service
+                port:
+                  number: 4006
+          - path: /api/live
+            pathType: Prefix
+            backend:
+              service:
+                name: live-session-service
+                port:
+                  number: 4007
+          - path: /api/packages
+            pathType: Prefix
+            backend:
+              service:
+                name: package-service
+                port:
+                  number: 4008
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-service
+                port:
+                  number: 3000

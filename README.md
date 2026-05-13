@@ -262,6 +262,51 @@ Needs Improvement
 Not Ready
 ```
 
+## Kubernetes Deployment
+
+The Kubernetes manifests are in `k8s/`. They create the `hiresphere` namespace, shared ConfigMap and Secret values, a MySQL Deployment with a persistent volume claim, Deployments for the backend services, ClusterIP Services for internal communication, a NodePort Service for the frontend, and an Ingress for path-based routing.
+
+### Docker image build commands
+
+Build the images before applying the Kubernetes files:
+
+```bash
+docker build -t hiresphere-backend:latest ./backend
+docker build -t hiresphere-frontend:latest ./frontend
+docker build -t hiresphere-interviewer-service:latest ./services/interviewer-service
+docker build -t hiresphere-booking-service:latest ./services/booking-service
+docker build -t hiresphere-submission-service:latest ./services/submission-service
+docker build -t hiresphere-evaluation-service:latest ./services/evaluation-service
+docker build -t hiresphere-messaging-service:latest ./services/messaging-service
+docker build -t hiresphere-live-session-service:latest ./services/live-session-service
+docker build -t hiresphere-package-service:latest ./services/package-service
+```
+
+For Minikube, build the images inside the Minikube Docker environment or load the images into Minikube before applying the manifests.
+
+### Minikube testing commands
+
+```bash
+minikube start
+minikube addons enable ingress
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/
+kubectl apply -R -f k8s/
+kubectl get pods -n hiresphere
+kubectl get svc -n hiresphere
+minikube service frontend-service -n hiresphere
+```
+
+Apply the namespace first, then use the recursive `kubectl apply -R -f k8s/` command if your Kubernetes CLI does not apply YAML files inside subfolders.
+
+### EKS deployment notes
+
+For AWS EKS deployment, push the Docker images to AWS ECR, create an EKS cluster, update kubeconfig for the cluster, apply the `k8s/` manifests, and use the AWS Load Balancer Controller or another Ingress Controller to expose the application.
+
+### Report explanation
+
+Docker containers are deployed to Kubernetes as Pods. Kubernetes Deployments manage replicas and self-healing. Kubernetes Services provide internal communication between the frontend, backend services, and MySQL. Ingress/API Gateway provides external routing to the correct service path. For local testing, Minikube can be used. For cloud deployment, AWS EKS can be used.
+
 ## API Summary
 
 Pricing:
