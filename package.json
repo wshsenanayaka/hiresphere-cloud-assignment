@@ -1,7 +1,9 @@
 {
   "scripts": {
-    "start": "vite frontend --host 0.0.0.0 --port 3000",
-    "dev": "vite frontend --host 127.0.0.1",
+     "start": "vite --host 0.0.0.0 --force",
+    "dev": "vite --host 0.0.0.0 --force",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
     "frontend": "vite frontend --host 127.0.0.1",
     "server": "node backend/index.js",
     "backend": "node backend/index.js",
@@ -19,9 +21,8 @@
     "packages:dev": "npm.cmd --prefix services/package-service run dev",
     "packages:start": "npm.cmd --prefix services/package-service start",
     "evaluations:dev": "npm.cmd --prefix services/evaluation-service run dev",
-    "evaluations:start": "npm.cmd --prefix services/evaluation-service start",
-    "build": "vite build frontend",
-    "preview": "vite preview frontend --host 127.0.0.1"
+    "evaluations:start": "npm.cmd --prefix services/evaluation-service start"
+   
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
