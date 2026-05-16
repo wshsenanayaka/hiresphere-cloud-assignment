@@ -23,6 +23,10 @@ jobs:
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Configure Kubernetes
+        run: |
+          aws eks update-kubeconfig --region ap-south-1 --name hiresphere-cluster
+
       - name: Build Frontend
         run: |
           docker build -t hiresphere-frontend ./frontend
