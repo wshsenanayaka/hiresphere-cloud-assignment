@@ -29,8 +29,13 @@ jobs:
 
       - name: Build Frontend
         run: |
-          docker build -t hiresphere-frontend ./frontend
+          docker build -t 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-frontend:latest ./frontend
+
+      - name: Push Frontend
+        run: |
+          docker push 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-frontend:latest
 
       - name: Deploy Kubernetes
         run: |
           kubectl apply -f k8s/ --recursive --validate=false
+          kubectl rollout restart deployment/frontend -n hiresphere
