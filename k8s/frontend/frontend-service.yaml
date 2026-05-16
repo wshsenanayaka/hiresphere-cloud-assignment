@@ -4,10 +4,10 @@ metadata:
   name: frontend-service
   namespace: hiresphere
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: frontend
   ports:
-    - port: 3000
+    - protocol: TCP
+      port: 80
       targetPort: 3000
-      nodePort: 30080

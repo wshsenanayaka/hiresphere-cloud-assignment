@@ -4,7 +4,7 @@ metadata:
   name: evaluation-service
   namespace: hiresphere
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: evaluation-service
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: evaluation-service
-          image: hiresphere-evaluation-service:latest
+          image: 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-evaluation-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4005

@@ -4,6 +4,7 @@ metadata:
   name: mysql-pvc
   namespace: hiresphere
 spec:
+  storageClassName: gp2
   accessModes:
     - ReadWriteOnce
   resources:

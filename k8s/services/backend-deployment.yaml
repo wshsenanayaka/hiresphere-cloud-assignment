@@ -4,7 +4,7 @@ metadata:
   name: backend
   namespace: hiresphere
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: backend
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: hiresphere-backend:latest
+          image: 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-backend:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000

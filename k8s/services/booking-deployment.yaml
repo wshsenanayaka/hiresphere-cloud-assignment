@@ -4,7 +4,7 @@ metadata:
   name: booking-service
   namespace: hiresphere
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: booking-service
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: booking-service
-          image: hiresphere-booking-service:latest
+          image: 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-booking-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4003

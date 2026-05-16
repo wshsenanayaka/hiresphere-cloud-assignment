@@ -4,7 +4,7 @@ metadata:
   name: package-service
   namespace: hiresphere
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: package-service
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: package-service
-          image: hiresphere-package-service:latest
+          image: 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-package-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4008

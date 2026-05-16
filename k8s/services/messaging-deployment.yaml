@@ -4,7 +4,7 @@ metadata:
   name: messaging-service
   namespace: hiresphere
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: messaging-service
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: messaging-service
-          image: hiresphere-messaging-service:latest
+          image: 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-messaging-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4006

@@ -19,6 +19,26 @@ function createHttpError(status, message) {
   return error;
 }
 
+async function ensurePricingTable() {
+  await pool.execute(
+    `CREATE TABLE IF NOT EXISTS interviewer_pricing (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      interviewer_id INT NOT NULL,
+      interview_type ENUM('DSA', 'System Design', 'Behavioral') NOT NULL,
+      domain ENUM('Backend', 'Frontend', 'DevOps', 'AI/ML', 'Mobile') NOT NULL,
+      duration_minutes INT NOT NULL,
+      price DECIMAL(10,2) NOT NULL,
+      currency VARCHAR(3) NOT NULL DEFAULT 'USD',
+      is_active TINYINT(1) NOT NULL DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT fk_interviewer_pricing_interviewer_service
+        FOREIGN KEY (interviewer_id) REFERENCES interviewers(id) ON DELETE CASCADE,
+      INDEX idx_interviewer_pricing_lookup (interviewer_id, interview_type, domain, duration_minutes, is_active)
+    )`,
+  );
+}
+
 function normalizePricing(row) {
   return {
     id: row.id,
@@ -63,6 +83,7 @@ function validatePricingPayload(payload, { partial = false } = {}) {
 }
 
 async function getPricingById(pricingId) {
+  await ensurePricingTable();
   const [rows] = await pool.execute('SELECT * FROM interviewer_pricing WHERE id = ?', [pricingId]);
   return rows[0] || null;
 }
@@ -103,6 +124,8 @@ app.get('/health', (req, res) => {
 
 app.post('/pricing', async (req, res, next) => {
   try {
+    await ensurePricingTable();
+
     const payload = {
       interviewerId: req.body.interviewerId || req.body.interviewer_id,
       interviewType: req.body.interviewType || req.body.interview_type,
@@ -143,6 +166,8 @@ app.post('/pricing', async (req, res, next) => {
 
 app.get('/pricing/interviewer/:interviewerId', async (req, res, next) => {
   try {
+    await ensurePricingTable();
+
     const [rows] = await pool.execute(
       'SELECT * FROM interviewer_pricing WHERE interviewer_id = ? ORDER BY is_active DESC, updated_at DESC',
       [req.params.interviewerId],
@@ -156,6 +181,8 @@ app.get('/pricing/interviewer/:interviewerId', async (req, res, next) => {
 
 app.get('/pricing/interviewer/:interviewerId/active', async (req, res, next) => {
   try {
+    await ensurePricingTable();
+
     const [rows] = await pool.execute(
       `SELECT * FROM interviewer_pricing
        WHERE interviewer_id = ? AND is_active = 1

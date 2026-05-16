@@ -4,7 +4,7 @@ metadata:
   name: submission-service
   namespace: hiresphere
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: submission-service
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: submission-service
-          image: hiresphere-submission-service:latest
+          image: 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-submission-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4004
