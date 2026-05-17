@@ -27,18 +27,42 @@ jobs:
         run: |
           aws eks update-kubeconfig --region ap-south-1 --name hiresphere-cluster
 
-      - name: Build Frontend
+      - name: Build Images
         run: |
           docker build \
             --build-arg VITE_API_URL=http://abbd96e71381249b49e31e0d56c01c4e-969731118.ap-south-1.elb.amazonaws.com:5000 \
             -t 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-frontend:latest \
             ./frontend
+          docker build -t 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-backend:latest -f backend/Dockerfile .
+          docker build -t 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-booking-service:latest ./services/booking-service
+          docker build -t 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-evaluation-service:latest ./services/evaluation-service
+          docker build -t 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-interviewer-service:latest ./services/interviewer-service
+          docker build -t 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-live-session-service:latest ./services/live-session-service
+          docker build -t 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-messaging-service:latest ./services/messaging-service
+          docker build -t 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-package-service:latest ./services/package-service
+          docker build -t 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-submission-service:latest ./services/submission-service
 
-      - name: Push Frontend
+      - name: Push Images
         run: |
           docker push 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-frontend:latest
+          docker push 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-backend:latest
+          docker push 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-booking-service:latest
+          docker push 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-evaluation-service:latest
+          docker push 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-interviewer-service:latest
+          docker push 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-live-session-service:latest
+          docker push 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-messaging-service:latest
+          docker push 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-package-service:latest
+          docker push 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-submission-service:latest
 
       - name: Deploy Kubernetes
         run: |
           kubectl apply -f k8s/ --recursive --validate=false
           kubectl rollout restart deployment/frontend -n hiresphere
+          kubectl rollout restart deployment/backend -n hiresphere
+          kubectl rollout restart deployment/booking-service -n hiresphere
+          kubectl rollout restart deployment/evaluation-service -n hiresphere
+          kubectl rollout restart deployment/interviewer-service -n hiresphere
+          kubectl rollout restart deployment/live-session-service -n hiresphere
+          kubectl rollout restart deployment/messaging-service -n hiresphere
+          kubectl rollout restart deployment/package-service -n hiresphere
+          kubectl rollout restart deployment/submission-service -n hiresphere

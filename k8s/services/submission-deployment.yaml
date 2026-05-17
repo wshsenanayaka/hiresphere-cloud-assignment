@@ -16,7 +16,7 @@ spec:
       containers:
         - name: submission-service
           image: 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-submission-service:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 4004
           env:

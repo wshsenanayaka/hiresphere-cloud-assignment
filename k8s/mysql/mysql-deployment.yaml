@@ -15,25 +15,17 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: mysql:8
-          imagePullPolicy: IfNotPresent
+          image: mysql:8.0
           ports:
             - containerPort: 3306
           env:
-            - name: MYSQL_DATABASE
-              valueFrom:
-                configMapKeyRef:
-                  name: hiresphere-config
-                  key: DB_NAME
             - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: hiresphere-secret
-                  key: DB_PASSWORD
+              value: rootpass
+            - name: MYSQL_DATABASE
+              value: hiresphere
           volumeMounts:
             - name: mysql-storage
               mountPath: /var/lib/mysql
       volumes:
         - name: mysql-storage
-          persistentVolumeClaim:
-            claimName: mysql-pvc
+          emptyDir: {}
