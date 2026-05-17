@@ -4,9 +4,10 @@ metadata:
   name: booking-service
   namespace: hiresphere
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: booking-service
   ports:
-    - port: 4003
+    - protocol: TCP
+      port: 4003
       targetPort: 4003

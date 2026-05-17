@@ -4,9 +4,10 @@ metadata:
   name: evaluation-service
   namespace: hiresphere
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: evaluation-service
   ports:
-    - port: 4005
+    - protocol: TCP
+      port: 4005
       targetPort: 4005

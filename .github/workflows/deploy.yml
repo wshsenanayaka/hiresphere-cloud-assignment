@@ -31,21 +31,47 @@ jobs:
         run: |
           kubectl apply -f k8s/frontend/frontend-service.yaml
           kubectl apply -f k8s/services/backend-service.yaml
+          kubectl apply -f k8s/services/booking-service.yaml
+          kubectl apply -f k8s/services/evaluation-service.yaml
+          kubectl apply -f k8s/services/interviewer-service.yaml
           kubectl apply -f k8s/services/messaging-service.yaml
           kubectl apply -f k8s/services/live-session-service.yaml
+          kubectl apply -f k8s/services/package-service.yaml
+          kubectl apply -f k8s/services/submission-service.yaml
 
       - name: Resolve Public URLs
         run: |
-          BACKEND_HOST=$(kubectl get svc backend-service -n hiresphere -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-          FRONTEND_HOST=$(kubectl get svc frontend-service -n hiresphere -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-          MESSAGING_HOST=$(kubectl get svc messaging-service -n hiresphere -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-          SIGNALING_HOST=$(kubectl get svc live-session-service -n hiresphere -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          wait_for_host() {
+            local service_name="$1"
+            local host=""
+            for i in {1..30}; do
+              host=$(kubectl get svc "$service_name" -n hiresphere -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+              if [ -n "$host" ]; then
+                echo "$host"
+                return 0
+              fi
+              sleep 10
+            done
+            echo "Timed out waiting for $service_name LoadBalancer hostname" >&2
+            return 1
+          }
+
+          BACKEND_HOST=$(wait_for_host backend-service)
+          BOOKING_HOST=$(wait_for_host booking-service)
+          EVALUATION_HOST=$(wait_for_host evaluation-service)
+          FRONTEND_HOST=$(wait_for_host frontend-service)
+          INTERVIEWER_HOST=$(wait_for_host interviewer-service)
+          MESSAGING_HOST=$(wait_for_host messaging-service)
+          PACKAGE_HOST=$(wait_for_host package-service)
+          SIGNALING_HOST=$(wait_for_host live-session-service)
+          SUBMISSION_HOST=$(wait_for_host submission-service)
+
           echo "VITE_API_URL=http://${BACKEND_HOST}:5000" >> "$GITHUB_ENV"
-          echo "VITE_BOOKING_SERVICE_URL=http://${BACKEND_HOST}:5000" >> "$GITHUB_ENV"
-          echo "VITE_INTERVIEWER_SERVICE_URL=http://${BACKEND_HOST}:5000" >> "$GITHUB_ENV"
-          echo "VITE_SUBMISSION_SERVICE_URL=http://${BACKEND_HOST}:5000" >> "$GITHUB_ENV"
-          echo "VITE_EVALUATION_SERVICE_URL=http://${BACKEND_HOST}:5000" >> "$GITHUB_ENV"
-          echo "VITE_PACKAGE_SERVICE_URL=http://${BACKEND_HOST}:5000" >> "$GITHUB_ENV"
+          echo "VITE_BOOKING_SERVICE_URL=http://${BOOKING_HOST}:4003" >> "$GITHUB_ENV"
+          echo "VITE_INTERVIEWER_SERVICE_URL=http://${INTERVIEWER_HOST}:4002" >> "$GITHUB_ENV"
+          echo "VITE_SUBMISSION_SERVICE_URL=http://${SUBMISSION_HOST}:4004" >> "$GITHUB_ENV"
+          echo "VITE_EVALUATION_SERVICE_URL=http://${EVALUATION_HOST}:4005" >> "$GITHUB_ENV"
+          echo "VITE_PACKAGE_SERVICE_URL=http://${PACKAGE_HOST}:4008" >> "$GITHUB_ENV"
           echo "VITE_MESSAGING_URL=http://${MESSAGING_HOST}:4006" >> "$GITHUB_ENV"
           echo "VITE_SIGNALING_URL=http://${SIGNALING_HOST}:4007" >> "$GITHUB_ENV"
           echo "FRONTEND_ORIGIN=http://${FRONTEND_HOST}" >> "$GITHUB_ENV"
@@ -87,8 +113,13 @@ jobs:
       - name: Deploy Kubernetes
         run: |
           kubectl apply -f k8s/ --recursive --validate=false
+          kubectl set env deployment/booking-service -n hiresphere CLIENT_ORIGIN=${FRONTEND_ORIGIN}
+          kubectl set env deployment/evaluation-service -n hiresphere CLIENT_ORIGIN=${FRONTEND_ORIGIN}
+          kubectl set env deployment/interviewer-service -n hiresphere CLIENT_ORIGIN=${FRONTEND_ORIGIN}
           kubectl set env deployment/messaging-service -n hiresphere CLIENT_ORIGIN=${FRONTEND_ORIGIN}
           kubectl set env deployment/live-session-service -n hiresphere CLIENT_ORIGIN=${FRONTEND_ORIGIN}
+          kubectl set env deployment/package-service -n hiresphere CLIENT_ORIGIN=${FRONTEND_ORIGIN}
+          kubectl set env deployment/submission-service -n hiresphere CLIENT_ORIGIN=${FRONTEND_ORIGIN}
           kubectl rollout restart deployment/frontend -n hiresphere
           kubectl rollout restart deployment/backend -n hiresphere
           kubectl rollout restart deployment/booking-service -n hiresphere

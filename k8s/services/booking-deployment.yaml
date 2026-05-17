@@ -23,7 +23,7 @@ spec:
             - name: PORT
               value: "4003"
             - name: CLIENT_ORIGIN
-              value: http://frontend-service:3000
+              value: http://a22a9b1f7363b4848980e865dab06576-543859913.ap-south-1.elb.amazonaws.com
           envFrom:
             - configMapRef:
                 name: hiresphere-config

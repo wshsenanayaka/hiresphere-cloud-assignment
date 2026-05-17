@@ -4,9 +4,10 @@ metadata:
   name: submission-service
   namespace: hiresphere
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: submission-service
   ports:
-    - port: 4004
+    - protocol: TCP
+      port: 4004
       targetPort: 4004

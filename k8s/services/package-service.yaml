@@ -4,9 +4,10 @@ metadata:
   name: package-service
   namespace: hiresphere
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: package-service
   ports:
-    - port: 4008
+    - protocol: TCP
+      port: 4008
       targetPort: 4008

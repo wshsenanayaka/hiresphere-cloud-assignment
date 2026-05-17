@@ -4,9 +4,10 @@ metadata:
   name: interviewer-service
   namespace: hiresphere
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: interviewer-service
   ports:
-    - port: 4002
+    - protocol: TCP
+      port: 4002
       targetPort: 4002
