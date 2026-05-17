@@ -4,9 +4,10 @@ metadata:
   name: live-session-service
   namespace: hiresphere
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: live-session-service
   ports:
-    - port: 4007
+    - protocol: TCP
+      port: 4007
       targetPort: 4007
