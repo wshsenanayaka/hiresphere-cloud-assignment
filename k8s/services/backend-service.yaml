@@ -4,9 +4,10 @@ metadata:
   name: backend-service
   namespace: hiresphere
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: backend
   ports:
-    - port: 5000
+    - protocol: TCP
+      port: 5000
       targetPort: 5000
