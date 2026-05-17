@@ -11,6 +11,396 @@ HireSphere is a cloud-based interview management platform for mock interview wor
 - File storage: Local uploads for assignment testing
 - Optional services: booking, messaging, live session, interviewer pricing, submission review, package, evaluation
 
+## PC Prerequisites
+
+Install these tools before running or deploying the project:
+
+- **Git**: clone the repository and push changes to GitHub.
+- **Node.js 20 LTS or newer**: run the frontend, backend, and service apps.
+- **npm**: installed with Node.js and used for package installation/scripts.
+- **Docker Desktop**: build and run Docker images locally.
+- **AWS CLI v2**: login to AWS, ECR, and EKS from the terminal.
+- **kubectl**: apply Kubernetes YAML and check EKS pods/services.
+- **MySQL client or MySQL Workbench**: optional, for importing/checking SQL locally or in RDS.
+- **Visual Studio Code**: optional, recommended for editing code and YAML.
+- **A GitHub account**: required for repository push and GitHub Actions.
+- **An AWS account**: required for EKS, ECR, Load Balancers, EBS, IAM, and optional RDS.
+
+Check installed versions:
+
+```bash
+git --version
+node --version
+npm --version
+docker --version
+aws --version
+kubectl version --client
+```
+
+Optional MySQL check:
+
+```bash
+mysql --version
+```
+
+After installing AWS CLI, configure credentials:
+
+```bash
+aws configure
+```
+
+Use:
+
+```txt
+Region: ap-south-1
+Output format: json
+```
+
+For EKS access, update kubeconfig:
+
+```bash
+aws eks update-kubeconfig --region ap-south-1 --name hiresphere-cluster
+```
+
+## AWS Deployment Guide
+
+This project is deployed on AWS using Docker images, Amazon ECR, Amazon EKS, Kubernetes Services, AWS Load Balancers, and GitHub Actions CI/CD.
+
+### AWS Services Used
+
+The deployment uses these AWS services:
+
+- **Amazon EKS**: Runs the Kubernetes cluster for frontend, backend, microservices, and MySQL.
+- **Amazon ECR**: Stores Docker images for all HireSphere services.
+- **Elastic Load Balancing**: Exposes the frontend, backend, and browser-accessed microservices to the internet.
+- **Amazon EC2**: Provides the EKS worker nodes.
+- **Amazon VPC**: Provides networking for the EKS cluster and load balancers.
+- **Amazon EBS**: Provides persistent storage for the Kubernetes MySQL PVC using the `gp2` storage class.
+- **IAM**: Provides permissions for EKS, ECR, GitHub Actions, and worker nodes.
+- **CloudWatch**: Stores EKS/container logs and AWS infrastructure events.
+- **GitHub Actions**: Builds Docker images, pushes to ECR, applies Kubernetes manifests, and restarts deployments.
+
+Optional production improvement:
+
+- **Amazon RDS MySQL** can be used instead of the Kubernetes MySQL pod. For this assignment deployment, the repository also supports Kubernetes MySQL using `k8s/mysql/`.
+
+### Application Services
+
+HireSphere contains 9 Dockerized application services:
+
+```txt
+hiresphere-frontend
+hiresphere-backend
+hiresphere-booking-service
+hiresphere-evaluation-service
+hiresphere-interviewer-service
+hiresphere-live-session-service
+hiresphere-messaging-service
+hiresphere-package-service
+hiresphere-submission-service
+```
+
+Kubernetes also runs:
+
+```txt
+mysql
+```
+
+### ECR Repositories
+
+Create these private ECR repositories in AWS:
+
+```txt
+hiresphere-frontend
+hiresphere-backend
+hiresphere-booking-service
+hiresphere-evaluation-service
+hiresphere-interviewer-service
+hiresphere-live-session-service
+hiresphere-messaging-service
+hiresphere-package-service
+hiresphere-submission-service
+```
+
+AWS CLI equivalent:
+
+```bash
+aws ecr create-repository --repository-name hiresphere-frontend --region ap-south-1
+aws ecr create-repository --repository-name hiresphere-backend --region ap-south-1
+aws ecr create-repository --repository-name hiresphere-booking-service --region ap-south-1
+aws ecr create-repository --repository-name hiresphere-evaluation-service --region ap-south-1
+aws ecr create-repository --repository-name hiresphere-interviewer-service --region ap-south-1
+aws ecr create-repository --repository-name hiresphere-live-session-service --region ap-south-1
+aws ecr create-repository --repository-name hiresphere-messaging-service --region ap-south-1
+aws ecr create-repository --repository-name hiresphere-package-service --region ap-south-1
+aws ecr create-repository --repository-name hiresphere-submission-service --region ap-south-1
+```
+
+### GitHub Secrets
+
+Add these repository secrets in GitHub:
+
+```txt
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+```
+
+The IAM user or role used by GitHub Actions needs permissions for:
+
+```txt
+ECR image push/pull
+EKS DescribeCluster
+Kubernetes deployment access through the EKS aws-auth mapping
+```
+
+### Kubernetes Files
+
+Main Kubernetes files:
+
+```txt
+k8s/namespace.yaml
+k8s/configmap.yaml
+k8s/secret.yaml
+k8s/frontend/frontend-deployment.yaml
+k8s/frontend/frontend-service.yaml
+k8s/services/*-deployment.yaml
+k8s/services/*-service.yaml
+k8s/mysql/mysql-deployment.yaml
+k8s/mysql/mysql-service.yaml
+k8s/mysql/mysql-pvc.yaml
+```
+
+All public browser-facing services use `LoadBalancer`:
+
+```txt
+frontend-service        port 80   -> targetPort 3000
+backend-service         port 5000 -> targetPort 5000
+booking-service         port 4003 -> targetPort 4003
+interviewer-service     port 4002 -> targetPort 4002
+submission-service      port 4004 -> targetPort 4004
+evaluation-service      port 4005 -> targetPort 4005
+messaging-service       port 4006 -> targetPort 4006
+live-session-service    port 4007 -> targetPort 4007
+package-service         port 4008 -> targetPort 4008
+```
+
+MySQL remains internal:
+
+```txt
+mysql-service           ClusterIP port 3306
+```
+
+### First-Time AWS Deployment Steps
+
+1. Create the EKS cluster in `ap-south-1`.
+2. Create the 9 ECR repositories listed above.
+3. Configure your local kubeconfig:
+
+```bash
+aws eks update-kubeconfig --region ap-south-1 --name hiresphere-cluster
+```
+
+4. Apply Kubernetes manifests recursively:
+
+```bash
+kubectl apply -f k8s/ --recursive --validate=false
+```
+
+5. Check pods and services:
+
+```bash
+kubectl get pods -n hiresphere
+kubectl get svc -n hiresphere
+```
+
+6. Wait until all app pods are `1/1 Running`.
+
+7. Import the database into the MySQL pod:
+
+```bash
+kubectl cp db/hirespheredb.sql hiresphere/<mysql-pod-name>:/tmp/hirespheredb.sql
+kubectl exec <mysql-pod-name> -n hiresphere -- sh -c "mysql -uroot -prootpass hiresphere < /tmp/hirespheredb.sql"
+```
+
+PowerShell example:
+
+```powershell
+kubectl cp db\hirespheredb.sql hiresphere/mysql-775c6b947b-s5qh7:/tmp/hirespheredb.sql
+kubectl exec mysql-775c6b947b-s5qh7 -n hiresphere -- sh -c "mysql -uroot -prootpass hiresphere < /tmp/hirespheredb.sql"
+```
+
+8. Verify database tables:
+
+```bash
+kubectl exec <mysql-pod-name> -n hiresphere -- sh -c "mysql -uroot -prootpass -e 'USE hiresphere; SHOW TABLES;'"
+```
+
+Expected tables:
+
+```txt
+availability_slots
+bookings
+candidate_package_bookings
+evaluation_reports
+evaluations
+interview_packages
+interviewer_pricing
+interviewers
+message_reads
+messages
+profiles
+submission_annotations
+submissions
+users
+```
+
+9. Open the frontend LoadBalancer URL:
+
+```bash
+kubectl get svc frontend-service -n hiresphere
+```
+
+Use the `EXTERNAL-IP` hostname in the browser.
+
+### GitHub Actions Deployment
+
+The workflow file is:
+
+```txt
+.github/workflows/deploy.yml
+```
+
+It runs automatically on pushes to:
+
+```txt
+main
+```
+
+The workflow does the following:
+
+1. Checks out the repository.
+2. Configures AWS credentials.
+3. Logs in to Amazon ECR.
+4. Configures Kubernetes access to EKS.
+5. Applies public Kubernetes Services first.
+6. Reads AWS LoadBalancer hostnames for each service.
+7. Builds the frontend with the correct `VITE_*` public service URLs.
+8. Builds all 9 Docker images.
+9. Pushes all 9 images to ECR.
+10. Applies all Kubernetes manifests.
+11. Updates service CORS origins.
+12. Restarts all app deployments.
+
+After changing frontend, backend, or microservice code, push to GitHub:
+
+```bash
+git add .
+git commit -m "Update HireSphere AWS deployment"
+git push origin main
+```
+
+Then check the action in GitHub:
+
+```txt
+GitHub repository -> Actions -> Deploy HireSphere
+```
+
+After the action succeeds:
+
+```bash
+kubectl get pods -n hiresphere
+kubectl get svc -n hiresphere
+```
+
+### Manual Build And Push Commands
+
+GitHub Actions should handle deployment automatically. Use manual commands only for debugging.
+
+Login to ECR:
+
+```bash
+aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 164885464221.dkr.ecr.ap-south-1.amazonaws.com
+```
+
+Build and push backend manually:
+
+```bash
+docker build -t 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-backend:latest -f backend/Dockerfile .
+docker push 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-backend:latest
+kubectl rollout restart deployment/backend -n hiresphere
+```
+
+Build and push frontend manually:
+
+```bash
+docker build -t 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-frontend:latest ./frontend
+docker push 164885464221.dkr.ecr.ap-south-1.amazonaws.com/hiresphere-frontend:latest
+kubectl rollout restart deployment/frontend -n hiresphere
+```
+
+### Common Deployment Errors And Fixes
+
+`kubectl` tries to connect to `localhost:8080`:
+
+```txt
+Reason: kubeconfig is not configured in GitHub Actions.
+Fix: run aws eks update-kubeconfig before kubectl commands.
+```
+
+Frontend shows blocked Vite host:
+
+```txt
+Reason: Vite preview blocked the AWS ELB hostname.
+Fix: configure preview.allowedHosts in vite.config.js and rebuild frontend image.
+```
+
+Frontend calls `localhost` and shows `Failed to fetch`:
+
+```txt
+Reason: Vite variables were not set at build time.
+Fix: pass VITE_API_URL and service URLs as Docker build args in GitHub Actions.
+```
+
+Route not found, for example `/bookings/interviewer/2/pending`:
+
+```txt
+Reason: frontend is calling the wrong service URL.
+Fix: VITE_BOOKING_SERVICE_URL must point to booking-service LoadBalancer, not backend-service.
+```
+
+Kubernetes reuses an old `latest` image:
+
+```txt
+Reason: imagePullPolicy is IfNotPresent.
+Fix: set imagePullPolicy: Always for app deployments.
+```
+
+MySQL PVC stays pending:
+
+```txt
+Reason: EBS storage class or CSI driver is not ready.
+Fix: verify gp2 storage class and Amazon EBS CSI driver/add-on.
+```
+
+SQL import fails because tables already exist:
+
+```txt
+Reason: database has already been initialized.
+Fix: no action needed if SHOW TABLES lists all required tables.
+```
+
+PowerShell does not support `<` SQL import redirection:
+
+```powershell
+Get-Content .\db\hirespheredb.sql | mysql -h 127.0.0.1 -P 3306 -u root -prootpass hiresphere
+```
+
+Inside a Kubernetes pod, shell redirection works:
+
+```bash
+mysql -uroot -prootpass hiresphere < /tmp/hirespheredb.sql
+```
+
 ## Run Locally
 
 Use these commands for the normal local setup:
